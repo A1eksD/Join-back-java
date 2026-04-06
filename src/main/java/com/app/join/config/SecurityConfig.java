@@ -30,7 +30,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/registerUser/**", "/api/login/**").permitAll()
+                .requestMatchers(
+                        "/api/registerUser",
+                        "/api/registerUser/**",
+                        "/api/login",
+                        "/api/login/**")
+                    .permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(tokenAuthFilter, UsernamePasswordAuthenticationFilter.class);

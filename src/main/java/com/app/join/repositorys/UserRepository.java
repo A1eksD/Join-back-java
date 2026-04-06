@@ -11,5 +11,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Boolean existsByEmail(String email);
 
+    // Muss User zurückgeben, nicht UserDTO — JPA mapped immer auf die Entity-Klasse
     Optional<User> findByEmail(String email);
 }

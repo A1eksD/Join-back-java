@@ -8,21 +8,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/registerUser")
+@RequestMapping("/api")
 public class RegisterUserRestController {
 
     @Autowired
     private RegisterUserService registerUserService;
 
-    @PostMapping("/")
-    private ResponseEntity<?> registerUser(@RequestBody UserDTO user){
+    @PostMapping("/registerUser")
+    public ResponseEntity<ApiResponse> registerUser(@RequestBody UserDTO user) {
         try {
             String token = registerUserService.registerNewUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new TokenResponse(token));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(token));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(e.getMessage()));
         }
     }
 
-    record TokenResponse(String token) {}
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> login(@RequestBody UserDTO user) {
+        try {
+            String token = registerUserService.loginUser(user);
+            return ResponseEntity.ok(ApiResponse.success(token));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    record ApiResponse(String token, String message) {
+        static ApiResponse success(String token)  {
+            return new ApiResponse(token, null);
+        }
+        static ApiResponse error(String message)  {
+            return new ApiResponse(null, message);
+        }
+    }
 }

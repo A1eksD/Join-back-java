@@ -20,10 +20,14 @@ public class RegisterUserService {
     private JwtService jwtService;
 
     public String registerNewUser(UserDTO userDTO) {
+        System.out.println("=== REGISTER ATTEMPT ===");
+        System.out.println("Email:     " + userDTO.email());
+        System.out.println("FirstName: " + userDTO.firstName());
+        System.out.println("Password:  " + (userDTO.password() != null ? "NOT NULL" : "NULL"));
 
-        // Prüfen ob E-Mail schon vergeben ist
         if (userRepository.existsByEmail(userDTO.email())) {
-            throw new RuntimeException("User already exists");
+            System.out.println("==> Email already exists!");
+            throw new IllegalArgumentException("User already exists");
         }
 
         User user = new User();
@@ -35,9 +39,34 @@ public class RegisterUserService {
         user.setStatus(true);
         user.setPassword(passwordEncoder.encode(userDTO.password()));
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        System.out.println("==> User saved with ID: " + saved.getId());
+        System.out.println("==> Saved email: " + saved.getEmail());
 
-        // JWT generieren — enthält die E-Mail als Subject, läuft nach X Stunden ab.
+        return jwtService.generateToken(user.getEmail());
+    }
+
+    public String loginUser(UserDTO userDTO) {
+        System.out.println("=== LOGIN ATTEMPT ===");
+        System.out.println("Email received:    " + userDTO.email());
+        System.out.println("Password received: " + (userDTO.password() != null ? "NOT NULL" : "NULL"));
+
+        User user = userRepository.findByEmail(userDTO.email())
+                .orElseThrow(() -> {
+                    System.out.println("==> User NOT found in DB for email: " + userDTO.email());
+                    return new SecurityException("Invalid credentials");
+                });
+
+        System.out.println("==> User found: " + user.getEmail());
+        System.out.println("==> Password in DB: " + (user.getPassword() != null ? "NOT NULL" : "NULL"));
+
+        boolean matches = passwordEncoder.matches(userDTO.password(), user.getPassword());
+        System.out.println("==> Password matches: " + matches);
+
+        if (!matches) {
+            throw new SecurityException("Invalid credentials");
+        }
+
         return jwtService.generateToken(user.getEmail());
     }
 }
