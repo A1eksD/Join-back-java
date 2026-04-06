@@ -2,7 +2,6 @@ package com.app.join.restcontroller;
 
 import com.app.join.logic.userService.RegisterUserService;
 import com.app.join.logic.userService.UserDTO;
-import com.app.join.logic.userService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
