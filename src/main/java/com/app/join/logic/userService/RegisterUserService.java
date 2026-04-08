@@ -20,13 +20,7 @@ public class RegisterUserService {
     private JwtService jwtService;
 
     public String registerNewUser(UserDTO userDTO) {
-        System.out.println("=== REGISTER ATTEMPT ===");
-        System.out.println("Email:     " + userDTO.email());
-        System.out.println("FirstName: " + userDTO.firstName());
-        System.out.println("Password:  " + (userDTO.password() != null ? "NOT NULL" : "NULL"));
-
         if (userRepository.existsByEmail(userDTO.email())) {
-            System.out.println("==> Email already exists!");
             throw new IllegalArgumentException("User already exists");
         }
 
@@ -38,35 +32,22 @@ public class RegisterUserService {
         user.setColor(userDTO.color());
         user.setStatus(true);
         user.setPassword(passwordEncoder.encode(userDTO.password()));
-
-        User saved = userRepository.save(user);
-        System.out.println("==> User saved with ID: " + saved.getId());
-        System.out.println("==> Saved email: " + saved.getEmail());
+        userRepository.save(user);
 
         return jwtService.generateToken(user.getEmail());
     }
 
-    public String loginUser(UserDTO userDTO) {
-        System.out.println("=== LOGIN ATTEMPT ===");
-        System.out.println("Email received:    " + userDTO.email());
-        System.out.println("Password received: " + (userDTO.password() != null ? "NOT NULL" : "NULL"));
-
+    public LoginDTO loginUser(UserDTO userDTO) {
         User user = userRepository.findByEmail(userDTO.email())
-                .orElseThrow(() -> {
-                    System.out.println("==> User NOT found in DB for email: " + userDTO.email());
-                    return new SecurityException("Invalid credentials");
-                });
-
-        System.out.println("==> User found: " + user.getEmail());
-        System.out.println("==> Password in DB: " + (user.getPassword() != null ? "NOT NULL" : "NULL"));
-
+                .orElseThrow(() -> new SecurityException("Invalid credentials"));
         boolean matches = passwordEncoder.matches(userDTO.password(), user.getPassword());
-        System.out.println("==> Password matches: " + matches);
 
         if (!matches) {
             throw new SecurityException("Invalid credentials");
         }
 
-        return jwtService.generateToken(user.getEmail());
+        String jwtToken = jwtService.generateToken(user.getEmail());
+        String userName = user.getFirstName() + " " + user.getLastName();
+        return new LoginDTO(jwtToken, userName);
     }
 }

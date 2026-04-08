@@ -1,7 +1,9 @@
 package com.app.join.restcontroller;
 
+import com.app.join.logic.userService.LoginDTO;
 import com.app.join.logic.userService.RegisterUserService;
 import com.app.join.logic.userService.UserDTO;
+import com.app.join.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,21 +27,12 @@ public class RegisterUserRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody UserDTO user) {
+    public ResponseEntity<ApiResponse<LoginDTO>> login(@RequestBody UserDTO user) {
         try {
-            String token = registerUserService.loginUser(user);
-            return ResponseEntity.ok(ApiResponse.success(token));
+            LoginDTO dto = registerUserService.loginUser(user);
+            return ResponseEntity.ok(ApiResponse.success(dto));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-    record ApiResponse(String token, String message) {
-        static ApiResponse success(String token)  {
-            return new ApiResponse(token, null);
-        }
-        static ApiResponse error(String message)  {
-            return new ApiResponse(null, message);
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
 }
